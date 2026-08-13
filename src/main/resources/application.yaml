@@ -14,19 +14,6 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info, prometheus, metrics
-  endpoint:
-    prometheus:
-      enabled: true
-    health:
-      show-details: always
-  metrics:
-    tags:
-      application: studio-api
   springdoc:
     api-docs:
       path: /v3/api-docs
