@@ -1,0 +1,9 @@
+CREATE TABLE professor
+(
+    ID             UUID PRIMARY KEY      DEFAULT gen_random_uuid(),
+    NOME           VARCHAR(150) NOT NULL,
+    TELEFONE       VARCHAR(20),
+    ESPECIALIDADE VARCHAR(255),
+    ATIVO          BOOLEAN      NOT NULL DEFAULT TRUE,
+    CRIADA_EM      TIMESTAMP    NOT NULL DEFAULT now()
+);
