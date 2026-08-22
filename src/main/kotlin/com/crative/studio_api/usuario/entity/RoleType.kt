@@ -1,4 +1,4 @@
-package com.crative.studio_api.usuario.domain
+package com.crative.studio_api.usuario.entity
 
 enum class RoleType {
     ADMIN,

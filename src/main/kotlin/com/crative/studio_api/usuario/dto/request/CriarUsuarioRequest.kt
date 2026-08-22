@@ -1,6 +1,6 @@
-package com.crative.studio_api.usuario.infrastructure.web.dto.request
+package com.crative.studio_api.usuario.dto.request
 
-import com.crative.studio_api.usuario.domain.RoleType
+import com.crative.studio_api.usuario.entity.RoleType
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 

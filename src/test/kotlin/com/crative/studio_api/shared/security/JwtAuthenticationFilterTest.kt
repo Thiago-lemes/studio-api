@@ -1,6 +1,6 @@
 package com.crative.studio_api.shared.security
 
-import com.crative.studio_api.usuario.domain.RoleType
+import com.crative.studio_api.usuario.entity.RoleType
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

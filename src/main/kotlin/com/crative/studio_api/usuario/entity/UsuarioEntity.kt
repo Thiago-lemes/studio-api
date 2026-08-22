@@ -1,7 +1,7 @@
-package com.crative.studio_api.usuario.infrastructure.persistence
+package com.crative.studio_api.usuario.entity
 
-import com.crative.studio_api.usuario.domain.RoleType
 import jakarta.persistence.*
+import org.hibernate.annotations.CreationTimestamp
 import java.time.LocalDateTime
 import java.util.*
 
@@ -32,6 +32,7 @@ class UsuarioEntity(
     @Column(name = "ATIVO", nullable = false)
     val ativo: Boolean = true,
 
-    @Column(name = "CRIADO_EM", nullable = false)
-    val criadoEm: LocalDateTime = LocalDateTime.now()
+    @CreationTimestamp
+    @Column(name = "CRIADO_EM", nullable = false, updatable = false)
+    var criadoEm: LocalDateTime? = null
 )

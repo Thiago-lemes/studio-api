@@ -1,6 +1,6 @@
-package com.crative.studio_api.usuario.infrastructure.web.dto.response
+package com.crative.studio_api.usuario.dto.response
 
-import com.crative.studio_api.usuario.domain.RoleType
+import com.crative.studio_api.usuario.entity.RoleType
 import java.util.UUID
 
 data class UsuarioLogadoResponse(

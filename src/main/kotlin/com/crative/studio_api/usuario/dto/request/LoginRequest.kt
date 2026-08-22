@@ -1,4 +1,4 @@
-package com.crative.studio_api.usuario.infrastructure.web.dto.request
+package com.crative.studio_api.usuario.dto.request
 
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank

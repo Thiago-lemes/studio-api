@@ -1,13 +1,14 @@
-package com.crative.studio_api.usuario.application.usecase
+package com.crative.studio_api.usuario.service
 
 import com.crative.studio_api.shared.security.JwtService
-import com.crative.studio_api.usuario.domain.UsuarioRepository
-import com.crative.studio_api.usuario.domain.exception.CredenciaisInvalidasException
+import com.crative.studio_api.usuario.dto.response.ResultadoAutenticacao
+import com.crative.studio_api.usuario.exception.CredenciaisInvalidasException
+import com.crative.studio_api.usuario.repository.UsuarioRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 
 @Component
-class AutenticarUsuarioUseCase(
+class AuthService(
     private val usuarioRepository: UsuarioRepository,
     private val jwtService: JwtService,
     private val passwordEncoder: PasswordEncoder
@@ -16,8 +17,8 @@ class AutenticarUsuarioUseCase(
         private const val CREDENCIAS_INVALIDAS = "Credenciais inválidas"
     }
 
-    fun autenticar(email: String, senha: String): AutenticacaoResponse {
-        val usuario = usuarioRepository.buscarPorEmail(email)
+    fun autenticar(email: String, senha: String): ResultadoAutenticacao {
+        val usuario = usuarioRepository.findByEmail(email)
             ?: throw CredenciaisInvalidasException(CREDENCIAS_INVALIDAS)
 
         if (!usuario.ativo) {
@@ -27,9 +28,8 @@ class AutenticarUsuarioUseCase(
         if (!passwordEncoder.matches(senha, usuario.senhaHash)) {
             throw CredenciaisInvalidasException(CREDENCIAS_INVALIDAS)
         }
-
         val token = jwtService.gerarToken(usuario.id, usuario.role, usuario.professorId)
 
-        return AutenticacaoResponse(token, usuario)
+        return ResultadoAutenticacao(token, usuario)
     }
 }

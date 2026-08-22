@@ -1,4 +1,4 @@
-package com.crative.studio_api.usuario.infrastructure.web.dto.response
+package com.crative.studio_api.usuario.dto.response
 
 data class LoginResponse(
     val token: String,

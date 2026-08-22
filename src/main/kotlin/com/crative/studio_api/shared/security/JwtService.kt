@@ -1,6 +1,6 @@
 package com.crative.studio_api.shared.security
 
-import com.crative.studio_api.usuario.domain.RoleType
+import com.crative.studio_api.usuario.entity.RoleType
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys

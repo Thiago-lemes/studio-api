@@ -1,8 +1,8 @@
 package com.crative.studio_api.shared.web
 
-import com.crative.studio_api.usuario.domain.exception.CredenciaisInvalidasException
-import com.crative.studio_api.usuario.domain.exception.EmailJaExisteNaBaseException
-import com.crative.studio_api.usuario.domain.exception.ProfessorNaoDeveSerCadastradoNesseFluxoException
+import com.crative.studio_api.usuario.exception.CredenciaisInvalidasException
+import com.crative.studio_api.usuario.exception.EmailJaExisteNaBaseException
+import com.crative.studio_api.usuario.exception.ProfessorNaoDeveSerCadastradoNesseFluxoException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException

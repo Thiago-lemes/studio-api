@@ -1,7 +1,7 @@
 package com.crative.studio_api.shared
 
 import com.crative.studio_api.shared.security.JwtService
-import com.crative.studio_api.usuario.domain.RoleType
+import com.crative.studio_api.usuario.entity.RoleType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
