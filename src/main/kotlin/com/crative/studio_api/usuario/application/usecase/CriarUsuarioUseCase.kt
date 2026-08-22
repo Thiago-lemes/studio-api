@@ -6,28 +6,31 @@ import com.crative.studio_api.usuario.domain.UsuarioRepository
 import com.crative.studio_api.usuario.domain.exception.EmailJaExisteNaBaseException
 import com.crative.studio_api.usuario.domain.exception.ProfessorNaoDeveSerCadastradoNesseFluxoException
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.stereotype.Component
 
+@Component
 class CriarUsuarioUseCase(
     private val repository: UsuarioRepository,
     private val passwordEncoder: PasswordEncoder,
 ) {
-    fun cadastrarUsuario(nome: String, email: String, senha: String, role: RoleType) {
+    fun cadastrarUsuario(nome: String, email: String, senha: String, role: RoleType): UsuarioDomain {
         if (role == RoleType.PROFESSOR) {
-            throw ProfessorNaoDeveSerCadastradoNesseFluxoException("Não é permitido criar usuário com role PROFESSOR nesse fluxo")
+            throw ProfessorNaoDeveSerCadastradoNesseFluxoException(
+                "Não é permitido criar usuário com role PROFESSOR nesse fluxo"
+            )
         }
-
         repository.buscarPorEmail(email)?.let {
             throw EmailJaExisteNaBaseException("Email já cadastrado")
         }
-        val senhaEcode = passwordEncoder.encode(senha)
+        val senhaEncode = passwordEncoder.encode(senha)
 
         val usuario = UsuarioDomain.criar(
             nome = nome,
             email = email,
-            senhaHash = senhaEcode.toString(),
+            senhaHash = senhaEncode!!,
             role = role,
             professorId = null
         )
-        repository.salvar(usuario)
+        return repository.salvar(usuario)
     }
 }

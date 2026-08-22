@@ -4,13 +4,13 @@ import com.crative.studio_api.usuario.domain.RoleType
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
-import java.util.Date
-import java.util.UUID
+import java.util.*
 import javax.crypto.SecretKey
 
 class JwtService(
     secret: String,
-   private val expirationMs: Long) {
+    private val expirationMs: Long
+) {
     private val signingKey: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray())
 
     fun gerarToken(usuarioId: UUID, role: RoleType, professorId: UUID?): String {
@@ -24,7 +24,7 @@ class JwtService(
             .expiration(expiracao)
             .signWith(signingKey)
 
-        if(professorId != null) {
+        if (professorId != null) {
             builder.claim("professorId", professorId.toString())
         }
         return builder.compact()

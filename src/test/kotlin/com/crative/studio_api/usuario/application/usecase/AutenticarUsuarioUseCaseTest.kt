@@ -40,7 +40,7 @@ class AutenticarUsuarioUseCaseTest {
         val usuario = UsuarioDomain.criar(
             nome = "Ana",
             email = "ana@studio.com",
-            senhaHash = senhaHash.toString(),
+            senhaHash = senhaHash!!,
             role = RoleType.SECRETARIA,
             professorId = null
         )
@@ -61,7 +61,7 @@ class AutenticarUsuarioUseCaseTest {
         val usuario = UsuarioDomain.criar(
             nome = "Ana",
             email = "ana@studio.com",
-            senhaHash = senhaHash.toString(),
+            senhaHash = senhaHash!!,
             role = RoleType.SECRETARIA,
             professorId = null
         )
@@ -85,10 +85,11 @@ class AutenticarUsuarioUseCaseTest {
     @Test
     fun deve_lancar_excecao_quando_usuario_esta_inativo() {
         val senhaHash = passwordEncoder.encode("senha123")
+
         val usuario = UsuarioDomain.criar(
             nome = "Ana",
             email = "ana@studio.com",
-            senhaHash = senhaHash.toString(),
+            senhaHash = senhaHash!!,
             role = RoleType.SECRETARIA,
             professorId = null
         ).copy(ativo = false)
