@@ -15,7 +15,7 @@ import java.util.*
 @RestController
 @RequestMapping("/usuarios")
 class UsuarioController(
-    private val service: UsuarioService,
+    private val service: UsuarioService
 ) {
 
     @PostMapping

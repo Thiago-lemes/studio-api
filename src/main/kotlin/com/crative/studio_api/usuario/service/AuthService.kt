@@ -5,9 +5,9 @@ import com.crative.studio_api.usuario.dto.response.ResultadoAutenticacao
 import com.crative.studio_api.usuario.exception.CredenciaisInvalidasException
 import com.crative.studio_api.usuario.repository.UsuarioRepository
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 
-@Component
+@Service
 class AuthService(
     private val usuarioRepository: UsuarioRepository,
     private val jwtService: JwtService,
