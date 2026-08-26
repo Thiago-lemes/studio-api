@@ -4,7 +4,6 @@ import com.crative.studio_api.aluno.dto.AlunoDetalhado
 import com.crative.studio_api.aluno.entity.AlunoEntity
 import com.crative.studio_api.aluno.exception.AlunoNaoEncontradoException
 import com.crative.studio_api.aluno.exception.CpfJaCadastradoException
-import com.crative.studio_api.aluno.exception.CpfNaoPodeSerNull
 import com.crative.studio_api.aluno.exception.DataNascimentoFuturaException
 import com.crative.studio_api.aluno.repository.AlunoRepository
 import org.springframework.stereotype.Service
@@ -24,6 +23,7 @@ class AlunoService(
     ): AlunoDetalhado {
         validarDataNascimento(dataNascimento)
         validarCpfNaoCadastrado(cpf)
+
         val aluno = AlunoEntity(
             nome = nome,
             telefone = telefone,
@@ -32,74 +32,52 @@ class AlunoService(
         )
 
         val alunoSalvo = repository.save(aluno)
-
         return detalhar(alunoSalvo)
     }
 
     fun buscarPorId(id: UUID): AlunoDetalhado {
-
-        val aluno = repository.findById(id)
-            .orElseThrow {
-                AlunoNaoEncontradoException(
-                    "Aluno não encontrado"
-                )
-            }
-
-        return detalhar(aluno)
+        return detalhar(buscarEntidadeOuFalhar(id))
     }
 
     fun listarAtivos(): List<AlunoDetalhado> {
+        return repository.findAllByAtivoTrue().map(::detalhar)
+    }
 
-        return repository.findAllByAtivoTrue()
-            .map(::detalhar)
+    fun atualizar(id: UUID, nome: String, telefone: String?): AlunoDetalhado {
+        val aluno = buscarEntidadeOuFalhar(id)
+        aluno.nome = nome
+        aluno.telefone = telefone
+        return detalhar(repository.save(aluno))
+    }
+
+    fun alterarStatus(id: UUID, ativo: Boolean): AlunoDetalhado {
+        val aluno = buscarEntidadeOuFalhar(id)
+        aluno.ativo = ativo
+        return detalhar(repository.save(aluno))
+    }
+
+    private fun buscarEntidadeOuFalhar(id: UUID): AlunoEntity {
+        return repository.findById(id)
+            .orElseThrow { AlunoNaoEncontradoException("Aluno não encontrado") }
     }
 
     private fun detalhar(aluno: AlunoEntity): AlunoDetalhado {
-
-        val idade = calcularIdade(
-            aluno.dataNascimento
-        )
-
-        return AlunoDetalhado(
-            aluno = aluno,
-            idade = idade,
-            menorDeIdade = idade < 18
-        )
+        val idade = calcularIdade(aluno.dataNascimento)
+        return AlunoDetalhado(aluno = aluno, idade = idade, menorDeIdade = idade < 18)
     }
 
-    private fun calcularIdade(
-        dataNascimento: LocalDate
-    ): Int {
+    private fun calcularIdade(dataNascimento: LocalDate): Int =
+        Period.between(dataNascimento, LocalDate.now()).years
 
-        return Period.between(
-            dataNascimento,
-            LocalDate.now()
-        ).years
-    }
-
-    private fun validarDataNascimento(
-        dataNascimento: LocalDate
-    ) {
-
+    private fun validarDataNascimento(dataNascimento: LocalDate) {
         if (dataNascimento.isAfter(LocalDate.now())) {
-            throw DataNascimentoFuturaException(
-                "Data de nascimento não pode ser futura"
-            )
+            throw DataNascimentoFuturaException("Data de nascimento não pode ser futura")
         }
     }
 
     private fun validarCpfNaoCadastrado(cpf: String) {
-        if (cpf.isBlank()) {
-            throw CpfNaoPodeSerNull(
-                "CPF é obrigatorio"
-            )
-        }
         if (repository.findByCpf(cpf) != null) {
-            throw CpfJaCadastradoException(
-                "Já existe um aluno cadastrado com este CPF"
-            )
+            throw CpfJaCadastradoException("Já existe um aluno cadastrado com este CPF")
         }
-
-
     }
 }
