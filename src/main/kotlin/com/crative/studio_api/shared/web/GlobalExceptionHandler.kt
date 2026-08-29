@@ -4,6 +4,7 @@ import com.crative.studio_api.aluno.exception.AlunoNaoEncontradoException
 import com.crative.studio_api.aluno.exception.CpfJaCadastradoException
 import com.crative.studio_api.aluno.exception.CpfNaoPodeSerNull
 import com.crative.studio_api.aluno.exception.DataNascimentoFuturaException
+import com.crative.studio_api.aluno.exception.ResponsavelNaoEncontradoException
 import com.crative.studio_api.usuario.exception.CredenciaisInvalidasException
 import com.crative.studio_api.usuario.exception.EmailJaExisteNaBaseException
 import com.crative.studio_api.usuario.exception.ProfessorNaoDeveSerCadastradoNesseFluxoException
@@ -101,6 +102,21 @@ class GlobalExceptionHandler {
             .body(
                 ErroResponse(
                     ex.message ?: "Aluno não encontrado",
+                    HttpStatus.NOT_FOUND.value()
+                )
+            )
+    }
+
+    @ExceptionHandler(ResponsavelNaoEncontradoException::class)
+    fun handleResponsavelNaoEncontrado(
+        ex: ResponsavelNaoEncontradoException
+    ): ResponseEntity<ErroResponse> {
+
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(
+                ErroResponse(
+                    ex.message ?: "Responsável não encontrado",
                     HttpStatus.NOT_FOUND.value()
                 )
             )

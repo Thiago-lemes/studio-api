@@ -1,5 +1,6 @@
 package com.crative.studio_api.aluno.controller
 
+import com.crative.studio_api.aluno.dto.request.AtualizarResponsavelRequest
 import com.crative.studio_api.aluno.dto.request.CadastrarResponsavelRequest
 import com.crative.studio_api.aluno.dto.response.ResponsavelResponse
 import com.crative.studio_api.aluno.mapper.toResponse
@@ -11,12 +12,12 @@ import org.springframework.web.bind.annotation.*
 import java.util.UUID
 
 @RestController
-@RequestMapping("/alunos/{alunoId}/responsaveis")
+@RequestMapping("/responsaveis")
 class ResponsavelController(
     private val responsavelService: ResponsavelService
 ) {
 
-    @PostMapping
+    @PostMapping("/aluno/{alunoId}")
     fun cadastrar(
         @PathVariable alunoId: UUID,
         @Valid @RequestBody request: CadastrarResponsavelRequest
@@ -35,8 +36,8 @@ class ResponsavelController(
             .body(responsavel.toResponse())
     }
 
-    @GetMapping
-    fun listar(
+    @GetMapping("/aluno/{alunoId}")
+    fun listarPorAluno(
         @PathVariable alunoId: UUID
     ): ResponseEntity<List<ResponsavelResponse>> {
 
@@ -45,5 +46,22 @@ class ResponsavelController(
             .map { it.toResponse() }
 
         return ResponseEntity.ok(responsaveis)
+    }
+
+    @PutMapping("/{id}")
+    fun atualizar(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: AtualizarResponsavelRequest
+    ): ResponseEntity<ResponsavelResponse> {
+
+        val responsavel = responsavelService.atualizar(
+            id = id,
+            nome = request.nome,
+            telefone = request.telefone,
+            cpf = request.cpf,
+            parentesco = request.parentesco
+        )
+
+        return ResponseEntity.ok(responsavel.toResponse())
     }
 }
