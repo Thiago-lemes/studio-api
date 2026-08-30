@@ -30,12 +30,12 @@ class SecurityConfig(
 
                     .requestMatchers(
                         HttpMethod.GET, "/alunos/**", "/professores/**",
-                        "/turmas/**", "/eventos/**"
+                        "/turmas/**", "/eventos/**", "/salas/**"
                     )
                     .hasAnyRole("ADMIN", "SECRETARIA", "PROFESSOR")
                     .requestMatchers(
                         "/alunos/**", "/responsaveis/**", "/matriculas/**",
-                        "/financeiro/**", "/comunicados/**", "/usuarios/**"
+                        "/financeiro/**", "/comunicados/**", "/usuarios/**", "/salas/**"
                     ).hasAnyRole("ADMIN", "SECRETARIA")
 
                     .anyRequest().authenticated()
