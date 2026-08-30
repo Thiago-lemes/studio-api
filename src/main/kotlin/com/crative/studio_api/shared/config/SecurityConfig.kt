@@ -37,7 +37,6 @@ class SecurityConfig(
                         "/alunos/**", "/responsaveis/**", "/matriculas/**",
                         "/financeiro/**", "/comunicados/**", "/usuarios/**", "/salas/**"
                     ).hasAnyRole("ADMIN", "SECRETARIA")
-
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
