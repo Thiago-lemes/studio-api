@@ -3,6 +3,7 @@ package com.crative.studio_api.shared.config
 import com.crative.studio_api.shared.security.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -25,10 +26,18 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/auth/login", "/auth/registrar-professor")
-                    .permitAll()
-                    .requestMatchers("/usuarios/**").hasRole("ADMIN")
-                    .requestMatchers("/alunos/**").hasAnyRole("SECRETARIA", "ADMIN")
+                    .requestMatchers("/auth/login", "/auth/registrar-professor").permitAll()
+
+                    .requestMatchers(
+                        HttpMethod.GET, "/alunos/**", "/professores/**",
+                        "/turmas/**", "/eventos/**"
+                    )
+                    .hasAnyRole("ADMIN", "SECRETARIA", "PROFESSOR")
+                    .requestMatchers(
+                        "/alunos/**", "/responsaveis/**", "/matriculas/**",
+                        "/financeiro/**", "/comunicados/**", "/usuarios/**"
+                    ).hasAnyRole("ADMIN", "SECRETARIA")
+
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
