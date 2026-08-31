@@ -1,5 +1,6 @@
 package com.crative.studio_api.shared.web
 
+import com.crative.studio_api.shared.exception.AcessoNegadoException
 import com.crative.studio_api.shared.exception.NaoEncontradoException
 import com.crative.studio_api.shared.exception.RecursoJaExisteException
 import com.crative.studio_api.shared.exception.RegraDeNegocioException
@@ -24,6 +25,10 @@ class GlobalExceptionHandler {
     @ExceptionHandler(RegraDeNegocioException::class)
     fun handleRegraDeNegocio(ex: RegraDeNegocioException): ResponseEntity<ErroResponse> =
         responder(HttpStatus.BAD_REQUEST, ex.message)
+
+    @ExceptionHandler(AcessoNegadoException::class)
+    fun handleAcessoNegado(ex: AcessoNegadoException): ResponseEntity<ErroResponse> =
+        responder(HttpStatus.FORBIDDEN, ex.message)
 
     @ExceptionHandler(CredenciaisInvalidasException::class)
     fun handleCredenciaisInvalidas(ex: CredenciaisInvalidasException): ResponseEntity<ErroResponse> =

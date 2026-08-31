@@ -15,5 +15,6 @@ fun TurmaDetalhada.toResponse(): TurmaResponse =
         horarioInicio = turma.horarioInicio,
         horarioFim = turma.horarioFim,
         capacidadeMaxima = turma.capacidadeMaxima,
+        vagasDisponiveis = vagasDisponiveis,
         ativa = turma.ativa
     )

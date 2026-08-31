@@ -5,5 +5,6 @@ import com.crative.studio_api.academico.turma.entity.TurmaEntity
 data class TurmaDetalhada(
     val turma: TurmaEntity,
     val professorNome: String,
-    val salaNome: String
+    val salaNome: String,
+    val vagasDisponiveis: Int
 )

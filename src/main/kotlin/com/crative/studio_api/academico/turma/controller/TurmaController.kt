@@ -1,15 +1,20 @@
 package com.crative.studio_api.academico.turma.controller
 
+
+import com.crative.studio_api.academico.exception.TurmaAcessoNegadoException
 import com.crative.studio_api.academico.turma.dto.request.AtualizarTurmaRequest
 import com.crative.studio_api.academico.turma.dto.request.CriarTurmaRequest
+import com.crative.studio_api.academico.turma.dto.response.AlunoMatriculadoResponse
 import com.crative.studio_api.academico.turma.dto.response.TurmaResponse
 import com.crative.studio_api.academico.turma.mapper.toResponse
 import com.crative.studio_api.academico.turma.service.TurmaService
+import com.crative.studio_api.shared.security.AuthenticatedUserDetails
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
-import java.util.UUID
+import java.util.*
 
 @RestController
 @RequestMapping("/turmas")
@@ -56,5 +61,27 @@ class TurmaController(
             capacidadeMaxima = request.capacidadeMaxima
         )
         return ResponseEntity.ok(turma.toResponse())
+    }
+
+    @GetMapping("/{id}/alunos")
+    fun listarAlunosMatriculados(@PathVariable id: UUID): ResponseEntity<List<AlunoMatriculadoResponse>> {
+        val turma = turmaService.buscarEntidade(id)
+        validarAcessoDoProfessor(turma.professorId)
+
+        return ResponseEntity.ok(turmaService.listarAlunosMatriculados(id))
+    }
+
+    private fun validarAcessoDoProfessor(professorIdDaTurma: UUID) {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val isProfessor = authentication!!.authorities.any { it.authority == "ROLE_PROFESSOR" }
+
+        if (isProfessor) {
+            val details = authentication.details as? AuthenticatedUserDetails
+            val professorIdLogado = details?.professorId
+
+            if (professorIdLogado != professorIdDaTurma) {
+                throw TurmaAcessoNegadoException("Você só pode consultar alunos das suas próprias turmas")
+            }
+        }
     }
 }

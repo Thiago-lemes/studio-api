@@ -15,5 +15,6 @@ data class TurmaResponse(
     val horarioInicio: LocalTime,
     val horarioFim: LocalTime,
     val capacidadeMaxima: Int,
+    val vagasDisponiveis: Int,
     val ativa: Boolean
 )

@@ -35,7 +35,8 @@ class SecurityConfig(
                     .hasAnyRole("ADMIN", "SECRETARIA", "PROFESSOR")
                     .requestMatchers(
                         "/alunos/**", "/responsaveis/**", "/matriculas/**",
-                        "/financeiro/**", "/comunicados/**", "/usuarios/**", "/salas/**"
+                        "/financeiro/**", "/comunicados/**", "/usuarios/**", "/salas/**",
+                        "/turmas/**"
                     ).hasAnyRole("ADMIN", "SECRETARIA")
                     .anyRequest().authenticated()
             }
