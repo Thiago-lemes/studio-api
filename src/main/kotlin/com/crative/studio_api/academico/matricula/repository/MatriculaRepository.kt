@@ -8,4 +8,8 @@ import java.util.UUID
 interface MatriculaRepository : JpaRepository<MatriculaEntity, UUID> {
     fun findAllByTurmaIdAndStatus(turmaId: UUID, status: StatusMatriculaType): List<MatriculaEntity>
     fun countByTurmaIdAndStatus(turmaId: UUID, status: StatusMatriculaType): Int
+    fun findByAlunoIdAndTurmaId(alunoId: UUID, turmaId: UUID): MatriculaEntity?
+    fun findAllByAlunoId(alunoId: UUID): List<MatriculaEntity>
+    fun findAllByTurmaId(turmaId: UUID): List<MatriculaEntity>
+    fun findAllByStatus(status: StatusMatriculaType): List<MatriculaEntity>
 }

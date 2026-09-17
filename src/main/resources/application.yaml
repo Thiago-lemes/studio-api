@@ -1,8 +1,6 @@
 spring:
   application:
     name: studio-api
-  server:
-    port: 8080
   datasource:
     url: jdbc:postgresql://localhost:5432/creative_studio
     username: postgres
@@ -14,15 +12,21 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-  springdoc:
-    api-docs:
-      path: /v3/api-docs
-    swagger-ui:
-      path: /swagger-ui.html
-      operationsSorter: method
-      tagsSorter: alpha
-      tryItOutEnabled: true
-    show-actuator: false
+
+server:
+  port: 8080
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    display-request-duration: true
+  show-actuator: false
+
 jwt:
   secret: ${JWT_SECRET:uma-chave-secreta-de-desenvolvimento-com-32-caracteres-ou-mais}
   expiration-ms: 28800000

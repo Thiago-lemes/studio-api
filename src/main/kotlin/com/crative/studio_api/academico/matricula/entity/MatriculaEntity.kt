@@ -31,16 +31,16 @@ class MatriculaEntity(
     var status: StatusMatriculaType = StatusMatriculaType.ATIVA,
 
     @Column(name = "valor_mensalidade", nullable = false, precision = 10, scale = 2)
-    val valorMensalidade: BigDecimal,
+    var valorMensalidade: BigDecimal,
 
     @Column(name = "dia_vencimento", nullable = false)
-    val diaVencimento: Int,
+    var diaVencimento: Int,
 
     @Column(name = "desconto_percentual", precision = 5, scale = 2)
-    val descontoPercentual: BigDecimal = BigDecimal.ZERO,
+    var descontoPercentual: BigDecimal = BigDecimal.ZERO,
 
     @Column(name = "data_inicio", nullable = false)
-    val dataInicio: LocalDate,
+    var dataInicio: LocalDate,
 
     @Column(name = "data_fim")
     var dataFim: LocalDate? = null

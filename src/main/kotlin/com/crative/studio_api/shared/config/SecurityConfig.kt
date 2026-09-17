@@ -28,6 +28,13 @@ class SecurityConfig(
                 auth
                     .requestMatchers("/auth/login", "/auth/registrar-professor").permitAll()
 
+                    // Swagger/OpenAPI: sem isso caem em anyRequest().authenticated() e a UI
+                    // não carrega (o /v3/api-docs volta 403 antes de qualquer controller).
+                    .requestMatchers(
+                        "/swagger-ui.html", "/swagger-ui/**",
+                        "/v3/api-docs", "/v3/api-docs/**"
+                    ).permitAll()
+
                     .requestMatchers(
                         HttpMethod.GET, "/alunos/**", "/professores/**",
                         "/turmas/**", "/eventos/**", "/salas/**"
@@ -35,7 +42,8 @@ class SecurityConfig(
                     .hasAnyRole("ADMIN", "SECRETARIA", "PROFESSOR")
                     .requestMatchers(
                         "/alunos/**", "/responsaveis/**", "/matriculas/**",
-                        "/financeiro/**", "/comunicados/**", "/usuarios/**", "/salas/**",
+                        "/financeiro/**", "/contas-pagar/**", "/contas-receber/**", "/pagamentos/**",
+                        "/comunicados/**", "/usuarios/**", "/salas/**",
                         "/turmas/**"
                     ).hasAnyRole("ADMIN", "SECRETARIA")
                     .anyRequest().authenticated()
