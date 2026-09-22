@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 @Service
 class ContaPagarService(
@@ -51,6 +51,60 @@ class ContaPagarService(
 
     fun listar(status: StatusContaType?): List<ContaPagarEntity> {
         return if (status == null) repository.findAll() else repository.findAllByStatus(status)
+    }
+
+    /**
+     * Recalcula o status a partir do novo vencimento, em vez de preservar o antigo: adiar uma
+     * despesa que estava ATRASADO para uma data futura tem de devolvê-la a PENDENTE, senão a
+     * correção do erro deixa a conta marcada como atrasada para sempre.
+     *
+     * Conta já quitada não é editável — mexer no valor depois da baixa reescreveria o caixa
+     * de um mês já fechado.
+     */
+    @Transactional
+    fun atualizar(
+        id: UUID,
+        descricao: String,
+        categoria: CategoriaDespesaType,
+        valor: BigDecimal,
+        vencimento: LocalDate
+    ): ContaPagarEntity {
+        val conta = buscarPorId(id)
+        validarEditavel(conta, "editada")
+
+        if (descricao.isBlank()) {
+            throw DescricaoObrigatoriaException("Descrição da conta a pagar é obrigatória")
+        }
+        if (valor <= BigDecimal.ZERO) {
+            throw ValorInvalidoException("Valor da conta deve ser maior que zero")
+        }
+
+        conta.descricao = descricao
+        conta.categoria = categoria
+        conta.valor = valor
+        conta.vencimento = vencimento
+        conta.status = statusInicial(vencimento)
+
+        return repository.save(conta)
+    }
+
+    /**
+     * Exclusão física, como em sala e diferente de aluno/professor: uma despesa lançada por engano
+     * não é histórico que valha preservar — é ruído no relatório. O que já foi pago, porém, é
+     * caixa realizado e não sai daqui.
+     */
+    @Transactional
+    fun remover(id: UUID) {
+        val conta = buscarPorId(id)
+        validarEditavel(conta, "removida")
+
+        repository.delete(conta)
+    }
+
+    private fun validarEditavel(conta: ContaPagarEntity, acao: String) {
+        if (conta.status == StatusContaType.PAGO) {
+            throw ContaJaQuitadaException("Conta a pagar já quitada não pode ser $acao")
+        }
     }
 
     @Transactional

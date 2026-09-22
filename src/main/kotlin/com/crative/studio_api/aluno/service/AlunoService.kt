@@ -9,7 +9,7 @@ import com.crative.studio_api.aluno.repository.AlunoRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.Period
-import java.util.UUID
+import java.util.*
 
 @Service
 class AlunoService(
@@ -41,6 +41,28 @@ class AlunoService(
 
     fun listarAtivos(): List<AlunoDetalhado> {
         return repository.findAllByAtivoTrue().map(::detalhar)
+    }
+
+    /**
+     * Os dois filtros são **combináveis**, e não exclusivos: `?nome=Ana&responsavel=Silva` significa
+     * "aluno chamado Ana cujo responsável é um Silva", não um ou outro. Termos em branco são
+     * ignorados, então `?nome=` equivale a não filtrar.
+     */
+    fun listarAtivos(nome: String?, responsavel: String?): List<AlunoDetalhado> {
+        val porNome = nome?.takeIf { it.isNotBlank() }
+        val porResponsavel = responsavel?.takeIf { it.isNotBlank() }
+
+        val alunos = when {
+            porNome != null && porResponsavel != null ->
+                repository.buscarAtivosPorResponsavel(porResponsavel)
+                    .filter { it.nome.contains(porNome, ignoreCase = true) }
+
+            porResponsavel != null -> repository.buscarAtivosPorResponsavel(porResponsavel)
+            porNome != null -> repository.findAllByAtivoTrueAndNomeContainingIgnoreCase(porNome)
+            else -> repository.findAllByAtivoTrue()
+        }
+
+        return alunos.sortedBy { it.nome.lowercase() }.map(::detalhar)
     }
 
     fun atualizar(id: UUID, nome: String, telefone: String?): AlunoDetalhado {

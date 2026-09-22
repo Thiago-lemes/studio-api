@@ -14,13 +14,13 @@ class UsuarioEntity(
     val id: UUID = UUID.randomUUID(),
 
     @Column(name = "NOME", nullable = false)
-    val nome: String,
+    var nome: String,
 
     @Column(name = "EMAIL", nullable = false, unique = true)
     val email: String,
 
     @Column(name = "SENHA", nullable = false)
-    val senhaHash: String,
+    var senhaHash: String,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE", nullable = false)
@@ -30,7 +30,7 @@ class UsuarioEntity(
     val professorId: UUID? = null,
 
     @Column(name = "ATIVO", nullable = false)
-    val ativo: Boolean = true,
+    var ativo: Boolean = true,
 
     @CreationTimestamp
     @Column(name = "CRIADO_EM", nullable = false, updatable = false)

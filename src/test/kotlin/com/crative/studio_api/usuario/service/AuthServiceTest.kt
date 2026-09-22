@@ -4,6 +4,9 @@ import com.crative.studio_api.shared.security.JwtService
 import com.crative.studio_api.usuario.entity.RoleType
 import com.crative.studio_api.usuario.entity.UsuarioEntity
 import com.crative.studio_api.usuario.exception.CredenciaisInvalidasException
+import com.crative.studio_api.usuario.exception.NovaSenhaIgualAAtualException
+import com.crative.studio_api.usuario.exception.SenhaAtualIncorretaException
+import com.crative.studio_api.usuario.exception.UsuarioNaoEncontradoException
 import com.crative.studio_api.usuario.repository.UsuarioRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -13,7 +16,13 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.check
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.util.Optional
+import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
 class AuthServiceTest {
@@ -92,6 +101,72 @@ class AuthServiceTest {
 
         assertThrows(CredenciaisInvalidasException::class.java) {
             service.autenticar("ana@studio.com", "qualquer")
+        }
+    }
+
+    // --- troca de senha ---
+
+    private fun usuarioSalvo(ativo: Boolean = true) = UsuarioEntity(
+        nome = "Ana", email = "ana@studio.com", senhaHash = "hashAtual",
+        role = RoleType.SECRETARIA, ativo = ativo
+    )
+
+    @Test
+    fun deve_trocar_a_senha_gravando_o_novo_hash() {
+        val usuario = usuarioSalvo()
+        given(usuarioRepository.findById(usuario.id)).willReturn(Optional.of(usuario))
+        given(passwordEncoder.matches("senhaAtual", "hashAtual")).willReturn(true)
+        given(passwordEncoder.matches("senhaNova", "hashAtual")).willReturn(false)
+        given(passwordEncoder.encode("senhaNova")).willReturn("hashNovo")
+
+        service.trocarSenha(usuario.id, "senhaAtual", "senhaNova")
+
+        verify(usuarioRepository).save(check { assertEquals("hashNovo", it.senhaHash) })
+    }
+
+    /** 400, não 401: quem erra a digitação está autenticado — deslogar seria punir o engano. */
+    @Test
+    fun deve_recusar_troca_com_senha_atual_incorreta() {
+        val usuario = usuarioSalvo()
+        given(usuarioRepository.findById(usuario.id)).willReturn(Optional.of(usuario))
+        given(passwordEncoder.matches("errada", "hashAtual")).willReturn(false)
+
+        assertThrows(SenhaAtualIncorretaException::class.java) {
+            service.trocarSenha(usuario.id, "errada", "senhaNova")
+        }
+        verify(usuarioRepository, never()).save(any())
+    }
+
+    @Test
+    fun deve_recusar_nova_senha_igual_a_atual() {
+        val usuario = usuarioSalvo()
+        given(usuarioRepository.findById(usuario.id)).willReturn(Optional.of(usuario))
+        given(passwordEncoder.matches("senhaAtual", "hashAtual")).willReturn(true)
+
+        assertThrows(NovaSenhaIgualAAtualException::class.java) {
+            service.trocarSenha(usuario.id, "senhaAtual", "senhaAtual")
+        }
+        verify(usuarioRepository, never()).save(any())
+    }
+
+    /** Token ainda válido de quem foi desligado no meio da sessão não pode mudar a senha. */
+    @Test
+    fun deve_recusar_troca_de_usuario_inativo() {
+        val usuario = usuarioSalvo(ativo = false)
+        given(usuarioRepository.findById(usuario.id)).willReturn(Optional.of(usuario))
+
+        assertThrows(CredenciaisInvalidasException::class.java) {
+            service.trocarSenha(usuario.id, "senhaAtual", "senhaNova")
+        }
+    }
+
+    @Test
+    fun deve_lancar_excecao_ao_trocar_senha_de_usuario_inexistente() {
+        val id = UUID.randomUUID()
+        given(usuarioRepository.findById(id)).willReturn(Optional.empty())
+
+        assertThrows(UsuarioNaoEncontradoException::class.java) {
+            service.trocarSenha(id, "a", "b")
         }
     }
 }

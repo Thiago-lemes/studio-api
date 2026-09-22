@@ -2,6 +2,7 @@ package com.crative.studio_api.academico.turma.controller
 
 
 import com.crative.studio_api.academico.exception.TurmaAcessoNegadoException
+import com.crative.studio_api.academico.turma.dto.request.AlterarStatusTurmaRequest
 import com.crative.studio_api.academico.turma.dto.request.AtualizarTurmaRequest
 import com.crative.studio_api.academico.turma.dto.request.CriarTurmaRequest
 import com.crative.studio_api.academico.turma.dto.response.AlunoMatriculadoResponse
@@ -104,6 +105,48 @@ class TurmaController(
             horarioFim = request.horarioFim,
             capacidadeMaxima = request.capacidadeMaxima
         )
+        return ResponseEntity.ok(turma.toResponse())
+    }
+
+    @Operation(
+        summary = "Encerra a turma (soft delete)",
+        description = "Só marca `ativa = false`, como em aluno e professor — a turma some de `GET /turmas` " +
+                "e da agenda, mas o histórico de matrículas continua íntegro.\n\n" +
+                "Recusado com 400 enquanto houver matrícula ATIVA: o job de mensalidades continuaria " +
+                "cobrando por uma turma fora da grade. Cancele ou tranque as matrículas antes."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "204", description = "Turma encerrada"),
+        ApiResponse(responseCode = "400", description = "Turma ainda tem matrículas ativas"),
+        ApiResponse(responseCode = "404", description = "Turma não encontrada")
+    )
+    @DeleteMapping("/{id}")
+    fun encerrar(
+        @Parameter(description = "Id da turma") @PathVariable id: UUID
+    ): ResponseEntity<Void> {
+        turmaService.alterarStatus(id, ativa = false)
+        return ResponseEntity.noContent().build()
+    }
+
+    @Operation(
+        summary = "Encerra ou reabre a turma",
+        description = "Diferente do DELETE, permite **reabrir** uma turma encerrada (`ativa = true`). " +
+                "É idempotente.\n\n" +
+                "Reabrir revalida choque de horário e pode responder 409: a sala ou o professor podem " +
+                "ter sido ocupados por outra turma enquanto esta estava fora da grade."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Status alterado"),
+        ApiResponse(responseCode = "400", description = "Turma ainda tem matrículas ativas"),
+        ApiResponse(responseCode = "404", description = "Turma não encontrada"),
+        ApiResponse(responseCode = "409", description = "Ao reabrir: choque de horário na sala ou do professor")
+    )
+    @PatchMapping("/{id}/status")
+    fun alterarStatus(
+        @Parameter(description = "Id da turma") @PathVariable id: UUID,
+        @Valid @RequestBody request: AlterarStatusTurmaRequest
+    ): ResponseEntity<TurmaResponse> {
+        val turma = turmaService.alterarStatus(id, request.ativa)
         return ResponseEntity.ok(turma.toResponse())
     }
 

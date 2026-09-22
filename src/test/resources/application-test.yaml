@@ -1,0 +1,22 @@
+spring:
+  jpa:
+    hibernate:
+      # O schema vem do Flyway; o validate garante que entidade e migration não divergiram.
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+# Os jobs do financeiro são invocados diretamente nos testes. O @EnableScheduling continua
+# ativo, mas os crons (02:00 e 03:00 do dia 1) não disparam dentro da janela de uma suíte.
+jwt:
+  secret: segredo-de-teste-com-mais-de-trinta-e-dois-caracteres-ok
+  expiration-ms: 3600000
+
+logging:
+  level:
+    org.testcontainers: WARN
+    com.github.dockerjava: WARN
+    org.hibernate.SQL: WARN

@@ -1,5 +1,6 @@
 package com.crative.studio_api.financeiro.controller
 
+import com.crative.studio_api.financeiro.dto.request.AtualizarContaPagarRequest
 import com.crative.studio_api.financeiro.dto.request.QuitarContaPagarRequest
 import com.crative.studio_api.financeiro.dto.request.RegistrarContaPagarRequest
 import com.crative.studio_api.financeiro.dto.response.ContaPagarResponse
@@ -14,16 +15,9 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 @Tag(
     name = "Financeiro — Contas a pagar",
@@ -75,6 +69,54 @@ class ContaPagarController(
         @Parameter(description = "Id da conta a pagar") @PathVariable id: UUID
     ): ResponseEntity<ContaPagarResponse> {
         return ResponseEntity.ok(contaPagarService.buscarPorId(id).toResponse())
+    }
+
+    @Operation(
+        summary = "Atualiza a despesa",
+        description = "Substitui a despesa inteira — o payload é o mesmo do cadastro. O status é " +
+                "recalculado a partir do novo vencimento: adiar uma despesa ATRASADO para uma data " +
+                "futura a devolve a PENDENTE.\n\n" +
+                "Conta já quitada não é editável (409): mexer no valor depois da baixa reescreveria " +
+                "um mês de caixa já fechado."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Despesa atualizada"),
+        ApiResponse(responseCode = "400", description = "Descrição em branco ou valor menor ou igual a zero"),
+        ApiResponse(responseCode = "404", description = "Conta a pagar não encontrada"),
+        ApiResponse(responseCode = "409", description = "Conta já está quitada")
+    )
+    @PutMapping("/{id}")
+    fun atualizar(
+        @Parameter(description = "Id da conta a pagar") @PathVariable id: UUID,
+        @Valid @RequestBody request: AtualizarContaPagarRequest
+    ): ResponseEntity<ContaPagarResponse> {
+        val conta = contaPagarService.atualizar(
+            id = id,
+            descricao = request.descricao,
+            categoria = request.categoria,
+            valor = request.valor,
+            vencimento = request.vencimento
+        )
+        return ResponseEntity.ok(conta.toResponse())
+    }
+
+    @Operation(
+        summary = "Remove a despesa",
+        description = "Exclusão **física**, como em `/salas` e diferente de aluno e professor: despesa " +
+                "lançada por engano é ruído no relatório, não histórico.\n\n" +
+                "Conta já quitada não pode ser removida (409) — é caixa realizado."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "204", description = "Despesa removida"),
+        ApiResponse(responseCode = "404", description = "Conta a pagar não encontrada"),
+        ApiResponse(responseCode = "409", description = "Conta já está quitada")
+    )
+    @DeleteMapping("/{id}")
+    fun remover(
+        @Parameter(description = "Id da conta a pagar") @PathVariable id: UUID
+    ): ResponseEntity<Void> {
+        contaPagarService.remover(id)
+        return ResponseEntity.noContent().build()
     }
 
     @Operation(

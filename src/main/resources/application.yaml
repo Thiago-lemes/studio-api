@@ -30,3 +30,14 @@ springdoc:
 jwt:
   secret: ${JWT_SECRET:uma-chave-secreta-de-desenvolvimento-com-32-caracteres-ou-mais}
   expiration-ms: 28800000
+
+cors:
+  # Origens do front liberadas, separadas por vírgula. O default cobre o `ng serve`.
+  # Em produção, sobrescreva com CORS_ALLOWED_ORIGINS=https://app.seudominio.com
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+
+app:
+  # Base do link de convite (`{frontend-url}/completar-cadastro?token=...`).
+  frontend-url: ${APP_FRONTEND_URL:http://localhost:4200}
+  convite:
+    validade-horas: ${APP_CONVITE_VALIDADE_HORAS:8}

@@ -2,18 +2,11 @@ package com.crative.studio_api.academico.matricula.service
 
 import com.crative.studio_api.academico.exception.TurmaNaoEncontradaException
 import com.crative.studio_api.academico.matricula.dto.MatriculaDetalhada
-import com.crative.studio_api.academico.matricula.valorEfetivo
 import com.crative.studio_api.academico.matricula.entity.MatriculaEntity
-import com.crative.studio_api.academico.matricula.exception.AlunoInativoException
-import com.crative.studio_api.academico.matricula.exception.AlunoJaMatriculadoNaTurmaException
-import com.crative.studio_api.academico.matricula.exception.DadosFinanceirosInvalidosException
-import com.crative.studio_api.academico.matricula.exception.MatriculaNaoEncontradaException
-import com.crative.studio_api.academico.matricula.exception.ResponsavelObrigatorioException
-import com.crative.studio_api.academico.matricula.exception.TransicaoDeStatusInvalidaException
-import com.crative.studio_api.academico.matricula.exception.TurmaInativaException
-import com.crative.studio_api.academico.matricula.exception.TurmaSemVagaException
+import com.crative.studio_api.academico.matricula.exception.*
 import com.crative.studio_api.academico.matricula.repository.MatriculaRepository
 import com.crative.studio_api.academico.matricula.types.StatusMatriculaType
+import com.crative.studio_api.academico.matricula.valorEfetivo
 import com.crative.studio_api.academico.turma.entity.TurmaEntity
 import com.crative.studio_api.academico.turma.repository.TurmaRepository
 import com.crative.studio_api.aluno.entity.AlunoEntity
@@ -27,7 +20,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Period
 import java.time.YearMonth
-import java.util.UUID
+import java.util.*
 
 @Service
 class MatriculaService(
@@ -59,9 +52,6 @@ class MatriculaService(
         if (!turma.ativa) {
             throw TurmaInativaException("Turma inativa não aceita novas matrículas")
         }
-
-        // A tabela tem UNIQUE(aluno_id, turma_id): uma rematrícula reaproveita a linha
-        // cancelada em vez de inserir uma nova (que violaria a constraint).
         val matriculaExistente = repository.findByAlunoIdAndTurmaId(alunoId, turmaId)
         if (matriculaExistente != null && matriculaExistente.status != StatusMatriculaType.CANCELADA) {
             throw AlunoJaMatriculadoNaTurmaException(
@@ -114,6 +104,30 @@ class MatriculaService(
 
     fun listarPorStatus(status: StatusMatriculaType): List<MatriculaDetalhada> {
         return repository.findAllByStatus(status).map(::detalhar)
+    }
+
+
+    fun listar(alunoId: UUID?, turmaId: UUID?, status: StatusMatriculaType?): List<MatriculaDetalhada> {
+        alunoId?.let { buscarAlunoOuFalhar(it) }
+        turmaId?.let { buscarTurmaOuFalhar(it) }
+
+        val statusEfetivo = if (alunoId == null && turmaId == null && status == null) {
+            StatusMatriculaType.ATIVA
+        } else {
+            status
+        }
+
+        val matriculas = when {
+            alunoId != null -> repository.findAllByAlunoId(alunoId)
+            turmaId != null -> repository.findAllByTurmaId(turmaId)
+            statusEfetivo != null -> repository.findAllByStatus(statusEfetivo)
+            else -> repository.findAll()
+        }
+
+        return matriculas
+            .filter { turmaId == null || it.turmaId == turmaId }
+            .filter { statusEfetivo == null || it.status == statusEfetivo }
+            .map(::detalhar)
     }
 
     /**

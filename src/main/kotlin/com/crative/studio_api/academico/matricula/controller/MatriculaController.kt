@@ -14,15 +14,8 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
-import java.util.UUID
+import org.springframework.web.bind.annotation.*
+import java.util.*
 
 @Tag(
     name = "Matrículas",
@@ -66,8 +59,12 @@ class MatriculaController(
 
     @Operation(
         summary = "Lista matrículas",
-        description = "Os filtros são exclusivos e avaliados nesta ordem: alunoId, turmaId, status. " +
-                "Sem nenhum filtro, devolve as matrículas ATIVA."
+        description = "Os filtros são **combináveis**, como em `/contas-receber`. Até a versão anterior " +
+                "eram exclusivos e avaliados em cascata, então `?turmaId=X&status=ATIVA` ignorava o " +
+                "status em silêncio e devolvia a turma inteira, canceladas inclusive.\n\n" +
+                "Sem nenhum filtro, devolve as matrículas ATIVA — a tela não abre com o histórico " +
+                "completo do estúdio.\n\n" +
+                "`alunoId` e `turmaId` inexistentes respondem 404, não lista vazia."
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Matrículas encontradas"),
@@ -79,13 +76,9 @@ class MatriculaController(
         @Parameter(description = "Filtra pelas matrículas de uma turma") @RequestParam(required = false) turmaId: UUID?,
         @Parameter(description = "Filtra por status") @RequestParam(required = false) status: StatusMatriculaType?
     ): ResponseEntity<List<MatriculaResponse>> {
-        val matriculas = when {
-            alunoId != null -> matriculaService.listarPorAluno(alunoId)
-            turmaId != null -> matriculaService.listarPorTurma(turmaId)
-            status != null -> matriculaService.listarPorStatus(status)
-            else -> matriculaService.listarPorStatus(StatusMatriculaType.ATIVA)
-        }
-        return ResponseEntity.ok(matriculas.map { it.toResponse() })
+        return ResponseEntity.ok(
+            matriculaService.listar(alunoId, turmaId, status).map { it.toResponse() }
+        )
     }
 
     @Operation(summary = "Busca uma matrícula pelo id")

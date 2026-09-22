@@ -7,4 +7,5 @@ import java.util.*
 interface ResponsavelRepository : JpaRepository<ResponsavelEntity, UUID> {
 
     fun findAllByAlunoId(alunoId: UUID): List<ResponsavelEntity>
+    fun countByAlunoId(alunoId: UUID): Int
 }

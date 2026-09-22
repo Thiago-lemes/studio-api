@@ -9,3 +9,4 @@ class ResponsavelNaoEncontradoException(message: String) : NaoEncontradoExceptio
 class CpfJaCadastradoException(message: String) : RecursoJaExisteException(message)
 class CpfNaoPodeSerNull(message: String) : RegraDeNegocioException(message)
 class DataNascimentoFuturaException(message: String) : RegraDeNegocioException(message)
+class UltimoResponsavelDeMenorException(message: String) : RegraDeNegocioException(message)

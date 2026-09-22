@@ -11,3 +11,4 @@ class ContaJaQuitadaException(message: String) : RecursoJaExisteException(messag
 class ValorInvalidoException(message: String) : RegraDeNegocioException(message)
 class DescricaoObrigatoriaException(message: String) : RegraDeNegocioException(message)
 class ReferenciaInvalidaException(message: String) : RegraDeNegocioException(message)
+class PeriodoInvalidoException(message: String) : RegraDeNegocioException(message)

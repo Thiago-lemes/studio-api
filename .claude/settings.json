@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw -o surefire:test -Dtest='*IntegrationTest,StudioApiApplicationTests')",
+      "Bash(./mvnw -o surefire:test -Dtest='StudioApiApplicationTests')"
+    ]
+  }
+}

@@ -2,15 +2,15 @@ package com.crative.studio_api.usuario.service
 
 import com.crative.studio_api.usuario.entity.RoleType
 import com.crative.studio_api.usuario.entity.UsuarioEntity
+import com.crative.studio_api.usuario.exception.AutoInativacaoNaoPermitidaException
 import com.crative.studio_api.usuario.exception.EmailJaExisteNaBaseException
-import com.crative.studio_api.usuario.exception.ProfessorIdNaoPermitidoException
-import com.crative.studio_api.usuario.exception.ProfessorIdObrigatorioException
+import com.crative.studio_api.usuario.exception.UltimoAdminAtivoException
 import com.crative.studio_api.usuario.exception.UsuarioNaoEncontradoException
-import com.crative.studio_api.usuario.exception.ProfessorNaoDeveSerCadastradoNesseFluxoException
 import com.crative.studio_api.usuario.repository.UsuarioRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import java.util.UUID
+import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @Service
 class UsuarioService(
@@ -25,13 +25,7 @@ class UsuarioService(
         role: RoleType,
         professorId: UUID? = null
     ): UsuarioEntity {
-        if (role == RoleType.PROFESSOR) {
-            throw ProfessorNaoDeveSerCadastradoNesseFluxoException(
-                "Não é permitido criar usuário com role PROFESSOR nesse fluxo"
-            )
-        }
-
-        validarVinculoComProfessor(role, professorId)
+        VinculoProfessorValidator.validar(role, professorId)
 
         repository.findByEmail(email)?.let {
             throw EmailJaExisteNaBaseException("Email já cadastrado")
@@ -55,12 +49,46 @@ class UsuarioService(
             }
     }
 
-    private fun validarVinculoComProfessor(role: RoleType, professorId: UUID?) {
-        if (role == RoleType.PROFESSOR && professorId == null) {
-            throw ProfessorIdObrigatorioException("professorId é obrigatório quando a role é igual a PROFESSOR")
+
+    @Transactional(readOnly = true)
+    fun listar(role: RoleType?, ativo: Boolean?): List<UsuarioEntity> {
+        val usuarios = when {
+            role != null && ativo != null -> repository.findAllByRoleAndAtivo(role, ativo)
+            role != null -> repository.findAllByRole(role)
+            ativo != null -> repository.findAllByAtivo(ativo)
+            else -> repository.findAll()
         }
-        if (role != RoleType.PROFESSOR && professorId != null) {
-            throw ProfessorIdNaoPermitidoException("professorId só pode ser preenchido quando role for igual PROFESSOR")
+
+        return usuarios.sortedBy { it.nome.lowercase() }
+    }
+
+    @Transactional
+    fun alterarStatus(id: UUID, ativo: Boolean, solicitanteId: UUID?): UsuarioEntity {
+        val usuario = buscarPorId(id)
+
+        if (usuario.ativo == ativo) {
+            return usuario
+        }
+
+        if (!ativo) {
+            validarInativacaoPermitida(usuario, solicitanteId)
+        }
+
+        usuario.ativo = ativo
+        return repository.save(usuario)
+    }
+
+    private fun validarInativacaoPermitida(usuario: UsuarioEntity, solicitanteId: UUID?) {
+        if (usuario.id == solicitanteId) {
+            throw AutoInativacaoNaoPermitidaException(
+                "Você não pode inativar o próprio acesso. Peça a outro administrador."
+            )
+        }
+
+        if (usuario.role == RoleType.ADMIN && repository.countByRoleAndAtivoTrue(RoleType.ADMIN) <= 1) {
+            throw UltimoAdminAtivoException(
+                "Este é o único administrador ativo. Promova outro usuário a ADMIN antes de inativá-lo."
+            )
         }
     }
 }

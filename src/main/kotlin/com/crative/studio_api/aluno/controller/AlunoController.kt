@@ -45,12 +45,24 @@ class AlunoController(
 
     @Operation(
         summary = "Lista os alunos ativos",
-        description = "Só os ativos — alunos inativados por DELETE ou PATCH /status não aparecem aqui."
+        description = "Só os ativos — alunos inativados por DELETE ou PATCH /status não aparecem aqui.\n\n" +
+                "Os dois filtros são **combináveis**: `?nome=Ana&responsavel=Silva` busca a aluna Ana " +
+                "cujo responsável é um Silva, não uma coisa ou outra. Ambos casam por trecho, sem " +
+                "diferenciar maiúsculas; `responsavel` procura no nome, telefone **e** CPF de quem " +
+                "responde pelo aluno — é o caminho do \"qual é mesmo o aluno da Ana?\", quando a " +
+                "secretária só tem em mãos os dados de quem ligou.\n\n" +
+                "Termos em branco são ignorados. Ordenado por nome."
     )
     @ApiResponse(responseCode = "200", description = "Lista de alunos ativos")
     @GetMapping
-    fun listarAtivos(): ResponseEntity<List<AlunoResponse>> {
-        return ResponseEntity.ok(alunoService.listarAtivos().map { it.toResponse() })
+    fun listarAtivos(
+        @Parameter(description = "Filtra por trecho do nome do aluno")
+        @RequestParam(required = false) nome: String?,
+
+        @Parameter(description = "Filtra por nome, telefone ou CPF de um responsável do aluno")
+        @RequestParam(required = false) responsavel: String?
+    ): ResponseEntity<List<AlunoResponse>> {
+        return ResponseEntity.ok(alunoService.listarAtivos(nome, responsavel).map { it.toResponse() })
     }
 
     @Operation(summary = "Busca um aluno pelo id")

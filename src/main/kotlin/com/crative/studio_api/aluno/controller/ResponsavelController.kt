@@ -14,7 +14,7 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.UUID
+import java.util.*
 
 @Tag(
     name = "Responsáveis",
@@ -27,12 +27,19 @@ class ResponsavelController(
     private val responsavelService: ResponsavelService
 ) {
 
-    @Operation(summary = "Cadastra um responsável para o aluno")
+    @Operation(
+        summary = "[Depreciado] Cadastra um responsável para o aluno",
+        description = "Use `POST /alunos/{alunoId}/responsaveis`. Responsável é subordinado ao aluno, " +
+                "e o path aninhado é o padrão do resto da API. Este caminho continua funcionando " +
+                "e some numa versão futura.",
+        deprecated = true
+    )
     @ApiResponses(
         ApiResponse(responseCode = "201", description = "Responsável cadastrado"),
         ApiResponse(responseCode = "400", description = "Payload inválido"),
         ApiResponse(responseCode = "404", description = "Aluno não encontrado")
     )
+    @Deprecated("Use POST /alunos/{alunoId}/responsaveis")
     @PostMapping("/aluno/{alunoId}")
     fun cadastrar(
         @Parameter(description = "Id do aluno") @PathVariable alunoId: UUID,
@@ -52,11 +59,16 @@ class ResponsavelController(
             .body(responsavel.toResponse())
     }
 
-    @Operation(summary = "Lista os responsáveis de um aluno")
+    @Operation(
+        summary = "[Depreciado] Lista os responsáveis de um aluno",
+        description = "Use `GET /alunos/{alunoId}/responsaveis`.",
+        deprecated = true
+    )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Lista de responsáveis do aluno"),
         ApiResponse(responseCode = "404", description = "Aluno não encontrado")
     )
+    @Deprecated("Use GET /alunos/{alunoId}/responsaveis")
     @GetMapping("/aluno/{alunoId}")
     fun listarPorAluno(
         @Parameter(description = "Id do aluno") @PathVariable alunoId: UUID
@@ -89,5 +101,26 @@ class ResponsavelController(
         )
 
         return ResponseEntity.ok(responsavel.toResponse())
+    }
+
+    @Operation(
+        summary = "Remove um responsável",
+        description = "Exclusão **física** — responsável cadastrado errado é dado sujo, não histórico.\n\n" +
+                "Recusa com 400 a remoção do **último** responsável de um aluno menor de idade que " +
+                "tenha matrícula ativa: a validação da matrícula só olha o momento da criação, então " +
+                "sem essa trava dava para deixar um menor matriculado sem ninguém respondendo por ele."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "204", description = "Responsável removido"),
+        ApiResponse(responseCode = "400", description = "Único responsável de menor com matrícula ativa"),
+        ApiResponse(responseCode = "404", description = "Responsável não encontrado")
+    )
+    @DeleteMapping("/{id}")
+    fun remover(
+        @Parameter(description = "Id do responsável") @PathVariable id: UUID
+    ): ResponseEntity<Void> {
+        responsavelService.remover(id)
+
+        return ResponseEntity.noContent().build()
     }
 }
